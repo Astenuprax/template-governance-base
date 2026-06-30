@@ -61,11 +61,14 @@ jobs:
           git init -q
           git add -A
           uvx pre-commit run --all-files
+          # Commit the rendered baseline so the idempotency step can diff against a real HEAD
+          # (git diff --cached with no commit compares to the empty tree => always "diff").
+          git add -A
+          git -c user.email=ci@local -c user.name=ci commit -q -m "rendered baseline"
 
       - name: Idempotent re-render yields no diff
         run: |
           cd /tmp/tgb-render
-          git add -A
-          uvx copier recopy --defaults --trust -a .copier-answers.base.yml
+          uvx copier recopy --defaults --overwrite --trust -a .copier-answers.base.yml
           git add -A
           git diff --cached --quiet || { echo "recopy produced a diff:"; git diff --cached; exit 1; }
