@@ -193,17 +193,23 @@ def check_license_verbatim_apache() -> list[str]:
 
 
 def check_root_md_allowlist() -> list[str]:
-    """Root .md limited to the furniture allowlist; all other .md under docs/ or .github/."""
+    """Root .md limited to the furniture allowlist; all other .md under docs/, .github/, or a
+    nested ``README.md``. A README is universal furniture (a per-member/sub-package long-
+    description, rendered per-directory on GitHub) — not the MD-bloat this rule targets — so it
+    is permitted at any depth. A language stack's own structure-lint may enforce a stricter rule
+    (e.g. member-root READMEs only); this stack-agnostic base only blocks non-README stray .md."""
     problems: list[str] = []
     for md in _iter_md():
         parts = md.relative_to(REPO_ROOT).parts
         if len(parts) == 1:
             if parts[0] not in ROOT_MD_ALLOWLIST:
                 problems.append(f"{parts[0]}: Markdown not in the root allowlist (move under docs/)")
-        elif parts[0] in {"docs", ".github"}:
+        elif parts[0] in {"docs", ".github"} or md.name == "README.md":
             continue
         else:
-            problems.append(f"{'/'.join(parts)}: Markdown outside root-allowlist / docs / .github")
+            problems.append(
+                f"{'/'.join(parts)}: Markdown outside root-allowlist / docs / .github / README.md"
+            )
     return problems
 
 
