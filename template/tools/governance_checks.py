@@ -6,7 +6,7 @@ implemented in pure stdlib so they run under any stack's toolchain (the cross-st
 runner `pre-commit` provides the Python). A LANGUAGE stack overlay adds its own structure-lint
 (member/typing/service checks) in its native mechanism on top of this — those are NOT here.
 
-Lifted from the four universal checks in the reference `tests/test_structure.py`:
+Encodes the four universal (stack-agnostic) governance checks of this template family:
   1. every `.github/workflows/` Action is SHA-pinned (supply-chain mandate; see docs/adr/0003),
   2. LICENSE is the verbatim full Apache-2.0 text (not swapped or truncated),
   3. root Markdown is limited to the OSS-furniture allowlist; everything else lives under docs/,
@@ -128,7 +128,10 @@ def check_license_verbatim_apache() -> list[str]:
         return ["LICENSE: missing"]
     text = lic.read_text(encoding="utf-8")
     problems: list[str] = []
-    for marker in ("Apache License", "Version 2.0", "TERMS AND CONDITIONS"):
+    # The end-marker is the anti-truncation guard: 'TERMS AND CONDITIONS' is an early heading,
+    # so a LICENSE cut off after it would still match — 'END OF TERMS AND CONDITIONS' sits after
+    # the full terms body, so its presence proves the body was not truncated.
+    for marker in ("Apache License", "Version 2.0", "TERMS AND CONDITIONS", "END OF TERMS AND CONDITIONS"):
         if marker not in text:
             problems.append(f"LICENSE: missing Apache-2.0 marker {marker!r} (not verbatim)")
     return problems
