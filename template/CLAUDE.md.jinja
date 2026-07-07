@@ -27,6 +27,11 @@ reserved even before the file exists:
 
 No synonyms for these roles (no `STATUS.md`, `PROGRESS.md`, `handoff.md`, …).
 
+<!-- planning-surfaces -->
+**Planning surfaces:** tracker `{{ planning_root }}/{{ 'TRACKER' if is_ai_monorepo else 'tracker' }}.md` (read before project work; open rows only) · ADR index `docs/adr/INDEX.md` (decisions — settled unless a row points at one) · done log `{{ planning_root }}/{{ 'DONE' if is_ai_monorepo else 'done' }}.md` append-only · ROADMAP `{{ 'docs/planning/ROADMAP.md' if is_ai_monorepo else 'ROADMAP.md' }}` (strategic arc, if present).
+**Session pickup:** if `docs/sessions/` holds an unadopted handoff, adopt it FIRST (then promote-and-delete per Option-1); otherwise resume from tracker IN-PROGRESS rows.
+<!-- /planning-surfaces -->
+
 Before any commit that closes work, move completed tracker rows to the done log and refresh the
 tracker's `Last-updated:` header — even in sessions that bypass `/end-session`.
 
