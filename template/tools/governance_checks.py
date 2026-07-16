@@ -42,6 +42,7 @@ ROOT_MD_ALLOWLIST: frozenset[str] = frozenset(
         "SECURITY.md",
         "AGENTS.md",
         "CLAUDE.md",
+        "ROADMAP.md",
     }
 )
 
@@ -165,8 +166,28 @@ def check_actions_sha_pinned() -> list[str]:
     return problems
 
 
+def _is_private_repo() -> bool:
+    """Read the rendered-in ``private_repo`` answer, if any. This module is copied verbatim
+    (not Jinja-templated), so it cannot know the render-time answers directly — it reads them
+    back from the answers file Copier writes on every render (``.copier-answers*.yml``), the
+    same file `copier update` uses for its 3-way merge. Fails closed: any read/parse problem
+    (missing file, bad YAML, absent key) yields False, so the LICENSE check still runs."""
+    for answers_file in REPO_ROOT.glob(".copier-answers*.yml"):
+        try:
+            data = yaml.safe_load(answers_file.read_text(encoding="utf-8"))
+        except (OSError, yaml.YAMLError):
+            continue
+        if isinstance(data, dict) and data.get("private_repo") is True:
+            return True
+    return False
+
+
 def check_license_verbatim_apache() -> list[str]:
-    """LICENSE is the full verbatim Apache-2.0 text — not swapped, stubbed, or truncated."""
+    """LICENSE is the full verbatim Apache-2.0 text — not swapped, stubbed, or truncated.
+    Skipped for a private repo (``private_repo: true``): LICENSE is not rendered there, so its
+    absence is by design, not a governance violation."""
+    if _is_private_repo():
+        return []
     lic = REPO_ROOT / "LICENSE"
     if not lic.is_file():
         return ["LICENSE: missing"]
@@ -227,6 +248,12 @@ def check_docs_frontmatter() -> list[str]:
         # docs/internal/README.md) must still carry frontmatter, else it is an ungoverned hole.
         relparts = md.relative_to(REPO_ROOT).parts
         if len(relparts) == 2 and relparts[1].lower() == "readme.md":
+            continue
+        # docs/sessions/ handoffs (produced by /end-session) never carry frontmatter — normally
+        # exempt only indirectly via the template's .gitignore. A consumer that deliberately
+        # COMMITS handoffs (un-ignores docs/sessions/) would otherwise re-trip this gate at every
+        # session close, so exempt the path explicitly rather than relying on gitignore alone.
+        if relparts[:2] == ("docs", "sessions"):
             continue
         rel = "/".join(relparts)
         fm = _read_frontmatter(md)

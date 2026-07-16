@@ -12,6 +12,7 @@ _skip_if_exists:
   - README.md
   - CHANGELOG.md
   - NOTICE
+  - CLAUDE.md
   - "docs/registers/tracker.md"
   - "docs/registers/done.md"
   - "docs/planning/TRACKER.md"
@@ -68,3 +69,20 @@ planning_root:
   type: str
   when: false
   default: "{{ 'docs/planning' if is_ai_monorepo else 'docs/registers' }}"
+
+existing_planning_estate:
+  type: bool
+  default: false
+  help: >-
+    Does this consumer already have a canonical planning estate elsewhere (its own
+    tracker/done/ROADMAP/ADR conventions)? If true, skip rendering this template's planning
+    scaffolding (tracker.md, done.md, the docs/adr/0003 pinning-scope ADR) so it does not
+    collide with the consumer's own.
+
+private_repo:
+  type: bool
+  default: false
+  help: >-
+    Is this repository private (never open-sourced)? If true, skip rendering the OSS-facing
+    LICENSE, NOTICE, CODE_OF_CONDUCT.md, CONTRIBUTING.md, and SECURITY.md furniture, and the
+    governance gate's LICENSE-verbatim-Apache-2.0 check is skipped at pre-commit time.
