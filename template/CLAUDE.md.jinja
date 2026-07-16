@@ -1,3 +1,93 @@
+{% if claude_md_canonical -%}
+# CLAUDE.md
+
+Canonical onboarding guide for `{{ project_name }}` (this repo's `claude_md_canonical` flag inverts
+the usual direction — see `AGENTS.md`, which is now the thin pointer). This file is the source of
+truth; for project-specific notes that must survive `copier update`, create a git-ignored
+`AGENTS.local.md` at the root (see Governance updates). Read this before making changes.
+
+This repository was scaffolded from `template-governance-base` — the stack-agnostic governance
+kernel. A language stack overlay (e.g. a uv-workspace Python overlay) composes on top and documents
+its own architecture, layout, and toolchain in the sections it adds below this guide.
+
+## The quality gate
+
+The credential-free gate is the repository's `pre-commit` hooks:
+
+```bash
+uvx pre-commit run --all-files
+```
+
+The base layer contributes:
+
+- **Universal hygiene** — trailing-whitespace, end-of-file, YAML/TOML validity, merge-conflict
+  markers, large-file guard, and secret scanning (gitleaks).
+- **Governance enforcement** (language-agnostic) — Actions are SHA-pinned, `LICENSE` is verbatim
+  Apache-2.0, root Markdown is allow-listed, and every `docs/` knowledge artefact carries
+  enum-valid frontmatter.
+
+A stack overlay adds its own lint, type-check, structure-lint, and test hooks. Run the same gate
+locally that CI runs; CI is the backstop the local hook cannot be `--no-verify`'d past.
+
+## Governance standards
+
+This repository is built to externally maintained standards, referenced **by name only** (read the
+canonical documents; do not expect their bodies inline):
+
+- **repo-structure-standard** — the canonical directory layout for the stack.
+- **repo-hygiene** — the mechanical enforcement layer (frontmatter, file placement, clean-repo
+  rules) that the gates and pre-commit hooks operationalise.
+- **governance-standards** — code-quality standards (typing, error handling, output contracts,
+  idempotency).
+
+When a convention seems arbitrary, its rationale lives in one of those three documents.
+
+## Conventions (universal)
+
+- **SHA-pinned GitHub Actions** — every `uses:` in `.github/workflows/` is pinned to a full commit
+  SHA, not a moving tag (supply-chain integrity over convenience; see `docs/adr/`).
+- **`docs/` frontmatter** — every Markdown file under `docs/` carries enum-valid YAML frontmatter
+  (a recognised `type`/`status` set, per repo-hygiene). Files missing or carrying invalid
+  frontmatter fail the gate.
+- **Root Markdown allowlist** — only the OSS-furniture Markdown set lives at the repo root;
+  everything else belongs under `docs/`.
+
+## Planning artifacts (reserved names — do not invent synonyms)
+
+This repo's Tier-0 planning surface follows `project-planning-artifacts`. Canonical names/paths,
+reserved even before the file exists:
+
+- **Tracker (open work):** `{{ planning_root }}/{{ 'TRACKER' if is_ai_monorepo else 'tracker' }}.md` — eager, rendered.
+- **Done (completed-work log):** `{{ planning_root }}/{{ 'DONE' if is_ai_monorepo else 'done' }}.md` — eager, rendered.
+- **Decisions:** `docs/adr/` — eager, rendered (one file per decision; never a tracker/status log).
+- **ROADMAP (strategic arc):** `{{ 'docs/planning/ROADMAP.md' if is_ai_monorepo else 'ROADMAP.md' }}` — **lazy**:
+  create only when real roadmap content exists. Do not pre-create an empty file.
+- **DEBT register:** `{{ planning_root }}/{{ 'DEBT' if is_ai_monorepo else 'debt' }}.md` — **lazy**: create only
+  when a real deferred item exists.
+
+No synonyms for these roles (no `STATUS.md`, `PROGRESS.md`, `handoff.md`, …).
+
+<!-- planning-surfaces -->
+**Planning surfaces:** tracker `{{ planning_root }}/{{ 'TRACKER' if is_ai_monorepo else 'tracker' }}.md` (read before project work; open rows only) · ADR index `docs/adr/INDEX.md` (decisions — settled unless a row points at one) · done log `{{ planning_root }}/{{ 'DONE' if is_ai_monorepo else 'done' }}.md` append-only · ROADMAP `{{ 'docs/planning/ROADMAP.md' if is_ai_monorepo else 'ROADMAP.md' }}` (strategic arc, if present).
+**Session pickup:** if `docs/sessions/` holds an unadopted handoff, adopt it FIRST (then promote-and-delete per Option-1); otherwise resume from tracker IN-PROGRESS rows.
+<!-- /planning-surfaces -->
+
+Before any commit that closes work, move completed tracker rows to the done log and refresh the
+tracker's `Last-updated:` header — even in sessions that bypass `/end-session`.
+
+## Governance updates
+
+This repo is linked to `template-governance-base` via `.copier-answers.base.yml`. Pull later
+governance changes with `uvx copier update -a .copier-answers.base.yml` (3-way merge; write-once
+user-owned seeds like `README.md` are preserved). This guide (`CLAUDE.md`) is template-owned and
+**re-renders on update** — do not keep project-specific notes here. Put them in a git-ignored
+`AGENTS.local.md` at the root, which Copier never creates or touches.
+
+---
+
+Author: {{ author_name }} | {{ author_org }}
+License: Apache-2.0 (see `LICENSE`; attribution in `NOTICE`).
+{% else -%}
 # CLAUDE.md
 
 Read **AGENTS.md** first — it is the canonical agent guide for this repository (governance
@@ -36,3 +126,4 @@ Before any commit that closes work, move completed tracker rows to the done log 
 tracker's `Last-updated:` header — even in sessions that bypass `/end-session`.
 
 Maintainer: {{ author_name }} | {{ author_org }}.
+{% endif -%}

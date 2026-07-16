@@ -86,3 +86,11 @@ private_repo:
     Is this repository private (never open-sourced)? If true, skip rendering the OSS-facing
     LICENSE, NOTICE, CODE_OF_CONDUCT.md, CONTRIBUTING.md, and SECURITY.md furniture, and the
     governance gate's LICENSE-verbatim-Apache-2.0 check is skipped at pre-commit time.
+
+claude_md_canonical:
+  type: bool
+  default: false
+  help: >-
+    Invert the usual AGENTS.md/CLAUDE.md canonical direction. If true, CLAUDE.md renders as the
+    canonical onboarding guide (source of truth) and AGENTS.md renders as the thin pointer to it.
+    If false (default), AGENTS.md is canonical and CLAUDE.md is the thin pointer.
